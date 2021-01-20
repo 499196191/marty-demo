@@ -7,4 +7,5 @@ public class PersonDTO {
     private String userName;
     private Integer age;
     private String birthday;
+    private String address;
 }

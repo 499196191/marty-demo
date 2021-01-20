@@ -10,4 +10,11 @@ public class PersonDO {
     private String name;
     private int age;
     private Date birthday;
+    private Address address;
+
+    @Data
+    public static class Address{
+        private String name;
+        private String phone;
+    }
 }
