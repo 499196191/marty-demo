@@ -14,6 +14,9 @@
         <module>bean-validator-demo</module>
         <module>strategy-pattern-demo</module>
         <module>mapstruct-demo</module>
+        <module>
+            mail-demo
+        </module>
     </modules>
 
     <dependencies>
