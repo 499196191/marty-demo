@@ -1,0 +1,54 @@
+version: '3'
+services:
+  activemq:
+    image: "webcenter/activemq:5.14.3"
+    container_name: "activemq"
+    restart: always
+    ports:
+      - "8162:8161"
+    networks:
+      - geoserver-cluster
+  nginx:
+    image: "nginx:1.18.0"
+    container_name: "nginx"
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - "./nginx.conf:/etc/nginx/nginx.conf"
+  geoserver1:
+    image: "geoserver:1.0"
+    container_name: "geoserver1"
+    restart: always
+    ports:
+      - "8081:8080"
+    volumes:
+      - "/root/docker/geoserver/geoserver-data-1:/usr/local/geoserver-2.16.2/data_dir"
+      - "/root/docker/geoserver/maps:/usr/local/geoserver-2.16.2/data_dir/maps"
+      - "/home/geoserver-cluster/web.xml:/usr/local/geoserver-2.16.2/webapps/geoserver/WEB-INF/web.xml"
+    entrypoint: "/usr/local/geoserver-2.16.2/init.sh ${MQ_HOST} ${MQ_PORT} ${ROLE_MASTER}"
+    networks:
+      - geoserver-cluster
+    extra_hosts:
+      - "cdh33:10.10.64.33"
+      - "cdh43:10.10.64.43"
+      - "spark2:10.10.64.29"
+    depends_on:
+      - "activemq"
+  geoserver2:
+    image: "geoserver:1.0"
+    container_name: "geoserver2"
+    restart: always
+    ports:
+      - "8082:8080"
+    volumes:
+      - "/root/docker/geoserver/geoserver-data-2:/usr/local/geoserver-2.16.2/data_dir"
+      - "/root/docker/geoserver/maps:/usr/local/geoserver-2.16.2/data_dir/maps"
+    entrypoint: "/usr/local/geoserver-2.16.2/init.sh ${MQ_HOST} ${MQ_PORT} ${ROLE_SLAVE}"
+    networks:
+      - geoserver-cluster
+    depends_on:
+      - "activemq"
+networks:
+  geoserver-cluster:
+    driver: bridge

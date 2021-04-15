@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: geoserver-pod
+  labels:
+    app: geoserver
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: "wh-vm-ip26"
+  containers:
+    - name: geoserver
+      image: geoserver-k8s:1.0
+      command: ["sh","/usr/local/geoserver-2.16.2/init.sh"]
+      args: ["activemq-svc", "61616"]
+      volumeMounts:
+        - mountPath: /usr/local/geoserver-2.16.2/data_dir/maps
+          name: map-volume
+        - mountPath: /usr/local/geoserver-2.16.2/data_dir
+          name: data-volume
+  volumes:
+    - name: map-volume
+      nfs:
+        path: /root/nfs_root
+        server: 10.10.64.25
+    - name: data-volume
+      hostPath:
+        path: /root/docker/geoserver/geoserver-data-2
+        type: Directory

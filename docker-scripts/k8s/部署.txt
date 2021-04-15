@@ -1,0 +1,32 @@
+部署方案思路：
+   为了解决不同geoserver服务间的图层配置文件夹无法公用的问题，方案选用k8s的daemonset控制器，用来做pod的管理工作，他可以确保所有的节点都运行了一个指定的 Pod 副本，
+然后为每个节点指定图层配置文件夹映射目录，这样可以确保pod意外停止重启后，geoserver的配置文件不丢失。对于shape和tiff等地图源文件，我们需要采用共享目录来实现geoserver
+服务器间的共享，这里的共享方式有两种，一种是NFS方式，另外一种是NFS-gateway方式。这两种方式均做过测试验证，未发现功能异常。
+   daemonset控制器特点：
+   1. 每当向集群中添加一个节点时，指定的 Pod 副本也将添加到该节点上
+   2. 当节点从集群中移除时，Pod 也就被垃圾回收了
+   3. 删除一个 DaemonSet 可以清理所有由其创建的 Pod
+
+安装环境：
+    kubenetes 1.19、HAProxy-Ingress 0.1
+
+kubenetes安装文档：https://www.kuboard.cn/install/install-dashboard.html
+HAProxy-Ingress：haproxy-ingress.github.io/docs/getting-started/
+
+geoserver的k8s版镜像说明：
+文件路径：gss-distr\gss-distr-geoserver\packages\geoserver-k8s.tar
+导入命令：docker load < geoserver-k8s.tar
+
+geoserver集群启动步骤：
+1. 启动部署activemq：kubectl apply -f activemq.yaml
+2. 启动部署geoserver，并通过ingress向外映射端口：kubectl apply -f geoserver.yaml(需要提前把geoserver-data目录拷贝并创建好)
+
+如何扩容geoserver服务：
+   通过自行维护pod，在geoserver-pod.yaml配置中稍作修改即可，需要新增多少geoserver服务器，就编写多少个pod配置。
+   配置说明：spec.nodeSelector.kubernetes.io/hostname指定部署的宿主机名称
+            metadata.name指定部署的pod名称
+   注意：pod标签不可修改，一定要修改geoserver的图层配置文件夹，此文件夹不可公用
+
+   启动命令：kubectl apply -f geoserver-pod.yaml
+
+

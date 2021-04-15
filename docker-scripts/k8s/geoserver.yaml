@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: geoserver-daemonset
+  labels:
+    app: geoserver
+spec:
+  selector:
+    matchLabels:
+      type: controller
+  template:
+    metadata:
+      labels:
+        app: geoserver
+        type: controller
+    spec:
+      containers:
+        - name: geoserver
+          image: geoserver-k8s:1.0
+          command: ["sh","/usr/local/geoserver-2.16.2/init.sh"]
+          args: ["activemq-svc", "61616"]
+          volumeMounts:
+            - mountPath: /usr/local/geoserver-2.16.2/data_dir/maps
+              name: map-volume
+            - mountPath: /usr/local/geoserver-2.16.2/data_dir
+              name: data-volume
+      volumes:
+          # nfs文件夹类型
+        - name: map-volume
+          nfs:
+            path: /root/nfs_root
+            server: 10.10.64.25
+          # 宿主机文件夹类型
+        - name: data-volume
+          hostPath:
+            path: /root/docker/geoserver/geoserver-data
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geoserver-svc
+  labels:
+    app: geoserver
+spec:
+  selector:
+    app: geoserver
+  ports:
+    - name: geoserver-8080
+      protocol: TCP
+      port: 8080
+      nodePort: 32603
+      targetPort: 8080
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: geoserver-ingress
+  annotations:
+    kubernetes.io/ingress.class: haproxy
+    ingress.kubernetes.io/affinity: "cookie"
+    ingress.kubernetes.io/session-cookie-name: "JSESSIONID"
+    ingress.kubernetes.io/session-cookie-hash: "sha1"
+spec:
+  rules:
+    - host: www.marty.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: geoserver-svc
+              servicePort: 8080

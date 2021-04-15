@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: activemq-deployment
+  labels:
+    app: activemq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: activemq
+  template:
+    metadata:
+      labels:
+        app: activemq
+    spec:
+      containers:
+        - name: activemq
+          image: webcenter/activemq:5.14.3
+            # 这里可以定义分配硬件资源
+#          resources:
+#            requests:
+              # 1000m = 1核
+#              cpu: "8000m"
+#              memory: "4Gi"
+#            limits:
+#              cpu: "1600m"
+#              memory: "16Gi"
+        # 定义固定节点启动pod
+#      nodeSelector:
+#        kubernetes.io/hostname: "node3"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: activemq-svc
+  labels:
+    app: activemq
+spec:
+  selector:
+    app: activemq
+  ports:
+      # 端口的名字
+    - name: activemq-8161
+      # 协议类型 TCP/UDP
+      protocol: TCP
+      # 集群内的其他容器组可通过 8161 端口访问 Service
+      port: 8161
+      # 通过Pod部署宿主机节点的 32601 端口访问 Service
+      nodePort: 32601
+      # 将请求转发到匹配 Pod 的 8161 端口
+      targetPort: 8161
+    - name: activemq-61616
+      protocol: TCP
+      port: 61616
+      nodePort: 32602
+      targetPort: 61616
+  type: NodePort
