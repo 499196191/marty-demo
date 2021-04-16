@@ -5,8 +5,8 @@
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.example</groupId>
-    <artifactId>marty-demo</artifactId>
+    <groupId>com.zy</groupId>
+    <artifactId>Marty-Project</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
@@ -14,9 +14,8 @@
         <module>bean-validator-demo</module>
         <module>strategy-pattern-demo</module>
         <module>mapstruct-demo</module>
-        <module>
-            mail-demo
-        </module>
+        <module>mail-demo</module>
+        <module>quartz-demo</module>
     </modules>
 
     <dependencies>
